@@ -14,18 +14,16 @@ import (
 type NetworkBus struct {
 	*Client
 	*Server
-	service   *NetworkBusService
-	sharedBus Bus
-	address   string
-	path      string
+	service *NetworkBusService
+	address string
+	path    string
 }
 
 // NewNetworkBus - returns a new network bus object at the server address and path
 func NewNetworkBus(address, path string) *NetworkBus {
 	bus := new(NetworkBus)
-	bus.sharedBus = New()
-	bus.Server = NewServer(address, path, bus.sharedBus)
-	bus.Client = NewClient(address, path, bus.sharedBus)
+	bus.Server = NewServer(address, path, New())
+	bus.Client = NewClient(address, path, New())
 	bus.service = &NetworkBusService{&sync.WaitGroup{}, false}
 	bus.address = address
 	bus.path = path
@@ -34,7 +32,7 @@ func NewNetworkBus(address, path string) *NetworkBus {
 
 // EventBus - returns wrapped event bus
 func (networkBus *NetworkBus) EventBus() Bus {
-	return networkBus.sharedBus
+	return networkBus.Server.eventBus
 }
 
 // NetworkBusService - object capable of serving the network bus

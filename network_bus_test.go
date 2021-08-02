@@ -1,7 +1,9 @@
 package EventBus
 
 import (
+	"fmt"
 	"testing"
+	"time"
 )
 
 func TestNewServer(t *testing.T) {
@@ -106,6 +108,27 @@ func TestNetworkBus(t *testing.T) {
 	}
 	networkBusB.Subscribe("topic-B", fnB, ":2035", "/_net_bus_A")
 	networkBusA.EventBus().Publish("topic-B", 20)
+
+	networkBusA.Stop()
+	networkBusB.Stop()
+}
+
+func TestNetworkBus_2(t *testing.T) {
+	networkBusA := NewNetworkBus(":2035", "/_net_bus_A")
+	networkBusA.Start()
+
+	networkBusB := NewNetworkBus(":2030", "/_net_bus_B")
+	networkBusB.Start()
+
+	networkBusA.Subscribe("topic-A", func(a int) { fmt.Println("A handler:", a) }, ":2030", "/_net_bus_B")
+
+	networkBusB.Subscribe("topic-A", func(a int) { fmt.Println("B handler:", a) }, ":2035", "/_net_bus_A")
+
+	fmt.Println("Publishing on A...")
+	networkBusA.EventBus().Publish("topic-A", 10)
+	fmt.Println("Done.")
+
+	time.Sleep(2 * time.Second)
 
 	networkBusA.Stop()
 	networkBusB.Stop()
